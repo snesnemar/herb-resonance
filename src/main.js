@@ -18,32 +18,104 @@ const SLICE_SHIFT_STEP = 120;
 const SLICE_TRIES = 4;
 
 // =========================
-// UI helpers
+// UI helpers（✅修正：桌機不切頁、手機切頁）
 // =========================
-function targetDByStage(stageIdx){
-  if(stageIdx===1) return 48;
-  if(stageIdx===2) return 73;
-  if(stageIdx===3) return 108;
+function isDesktop() {
+  return window.matchMedia("(min-width: 900px)").matches;
+}
+
+function ensureLayoutByWidth() {
+  const pageInput = document.getElementById("pageInput");
+  const pageResult = document.getElementById("pageResult");
+  if (!pageInput || !pageResult) return;
+
+  if (isDesktop()) {
+    // 桌機：兩邊都顯示
+    pageInput.classList.remove("hidden");
+    pageResult.classList.remove("hidden");
+  } else {
+    // 手機：預設顯示輸入、隱藏結果（不想這樣可改掉）
+    if (!pageInput.classList.contains("hidden")) {
+      // 保持
+    } else {
+      pageInput.classList.remove("hidden");
+    }
+    pageResult.classList.add("hidden");
+  }
+}
+
+function showResult() {
+  const pageInput = document.getElementById("pageInput");
+  const pageResult = document.getElementById("pageResult");
+  if (!pageInput || !pageResult) return;
+
+  if (isDesktop()) {
+    // 桌機：不切頁，只確保結果可見，並把右側捲到頂
+    pageInput.classList.remove("hidden");
+    pageResult.classList.remove("hidden");
+    pageResult.scrollTo({ top: 0, behavior: "smooth" });
+    return;
+  }
+
+  // 手機：切到結果頁
+  pageInput.classList.add("hidden");
+  pageResult.classList.remove("hidden");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function back() {
+  const pageInput = document.getElementById("pageInput");
+  const pageResult = document.getElementById("pageResult");
+  if (!pageInput || !pageResult) return;
+
+  if (isDesktop()) {
+    // 桌機：不需要切回（你也可以改成清空結果）
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    return;
+  }
+
+  // 手機：回到輸入頁
+  pageResult.classList.add("hidden");
+  pageInput.classList.remove("hidden");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+// 讓 HTML 的 onclick="back()" 可用
+window.back = back;
+
+// 進入頁面先依螢幕大小調整
+window.addEventListener("DOMContentLoaded", ensureLayoutByWidth);
+window.addEventListener("resize", () => {
+  // 避免你手機橫放/桌機縮放時怪掉
+  ensureLayoutByWidth();
+});
+
+// =========================
+// 小工具
+// =========================
+function targetDByStage(stageIdx) {
+  if (stageIdx === 1) return 48;
+  if (stageIdx === 2) return 73;
+  if (stageIdx === 3) return 108;
   return 175;
 }
 
-function clearTable(){
-  if(!table) return;
+function clearTable() {
+  if (!table) return;
   while (table.rows.length > 1) table.deleteRow(1);
 }
-function clearDiffTable(){
-  if(!diffTable) return;
+function clearDiffTable() {
+  if (!diffTable) return;
   while (diffTable.rows.length > 1) diffTable.deleteRow(1);
 }
 
-function addRow(seq, type, x, y, c, d){
-
+function addRow(seq, type, x, y, c, d) {
   const row = document.createElement("tr");
 
-  if(type.includes("輔助")) row.classList.add("row_sup");
-  else if(type.includes("控制")) row.classList.add("row_ctl");
-  else if(type.includes("敏攻")) row.classList.add("row_agi");
-  else if(type.includes("強攻")) row.classList.add("row_str");
+  if (type.includes("輔助")) row.classList.add("row_sup");
+  else if (type.includes("控制")) row.classList.add("row_ctl");
+  else if (type.includes("敏攻")) row.classList.add("row_agi");
+  else if (type.includes("強攻")) row.classList.add("row_str");
 
   row.innerHTML = `
     <td>${seq}</td>
@@ -57,63 +129,39 @@ function addRow(seq, type, x, y, c, d){
   document.getElementById("resultTable").appendChild(row);
 }
 
-
-function addDiffRow(label, cost, have){
+function addDiffRow(label, cost, have) {
   const diff = have - cost;
   const isLack = diff < 0;
 
   const row = document.createElement("tr");
-
-  if(isLack){
-    row.classList.add("rowLack");
-  }
+  if (isLack) row.classList.add("rowLack");
 
   row.innerHTML = `
     <td>${label}</td>
     <td>${cost}</td>
     <td>${have}</td>
     <td>${diff}</td>
-    <td>${isLack ? '不足' : 'OK'}</td>
+    <td>${isLack ? "不足" : "OK"}</td>
   `;
 
   document.getElementById("diffTable").appendChild(row);
 }
 
-
-// 切頁（若你不需要可刪）
-function showResult(){
-  const a = document.getElementById("pageInput");
-  const b = document.getElementById("pageResult");
-  if (a && b){
-    a.classList.add("hidden");
-    b.classList.remove("hidden");
-  }
-}
-function back(){
-  const a = document.getElementById("pageInput");
-  const b = document.getElementById("pageResult");
-  if (a && b){
-    b.classList.add("hidden");
-    a.classList.remove("hidden");
-  }
-}
-window.back = back;
-
 // =========================
 // D 模型（你原本的）
 // =========================
-function D_A(xVal){
+function D_A(xVal) {
   if (xVal <= 0) return 0;
   if (xVal === 1) return 15;
   return 30;
 }
-function D_B(yVal){
+function D_B(yVal) {
   if (yVal <= 0) return 0;
   if (yVal >= 6) return 24;
   return yVal * 4;
 }
 
-function C_PieceD(piece){
+function C_PieceD(piece) {
   if (piece <= 0) return 0;
   if (piece <= 6) return piece;
   if (piece === 8) return 14;
@@ -122,7 +170,7 @@ function C_PieceD(piece){
   if (piece === 18) return 48;
   return 9999;
 }
-function C_NextChunk(cost){
+function C_NextChunk(cost) {
   if (cost >= 18) return 18;
   if (cost >= 13) return 13;
   if (cost >= 10) return 10;
@@ -130,11 +178,11 @@ function C_NextChunk(cost){
   if (cost >= 6) return 6;
   return cost;
 }
-function D_C(cCost){
+function D_C(cCost) {
   if (cCost <= 0) return 0;
   let total = 0;
   let remain = cCost;
-  while (remain > 0){
+  while (remain > 0) {
     const chunk = C_NextChunk(remain);
     total += C_PieceD(chunk);
     remain -= chunk;
@@ -142,17 +190,17 @@ function D_C(cCost){
   return total;
 }
 
-function bonusFromCAndD(cCost, dVal){
+function bonusFromCAndD(cCost, dVal) {
   let bonus = 0;
 
-  if (cCost >= 36 && dVal >= 20){
+  if (cCost >= 36 && dVal >= 20) {
     bonus = 6;
     if (dVal >= 30) bonus++;
     if (dVal >= 40) bonus++;
     return bonus;
   }
 
-  if (cCost >= 26 && dVal >= 10){
+  if (cCost >= 26 && dVal >= 10) {
     bonus = 4;
     if (dVal >= 13) bonus++;
     if (dVal >= 16) bonus++;
@@ -162,7 +210,7 @@ function bonusFromCAndD(cCost, dVal){
     return bonus;
   }
 
-  if (cCost >= 18 && dVal >= 3){
+  if (cCost >= 18 && dVal >= 3) {
     bonus = 1;
     if (dVal >= 5) bonus++;
     if (dVal >= 8) bonus++;
@@ -172,7 +220,7 @@ function bonusFromCAndD(cCost, dVal){
     return bonus;
   }
 
-  if (cCost >= 8 && dVal >= 3){
+  if (cCost >= 8 && dVal >= 3) {
     bonus = 1;
     if (dVal >= 5) bonus++;
     if (dVal >= 16) bonus++;
@@ -180,7 +228,7 @@ function bonusFromCAndD(cCost, dVal){
     return bonus;
   }
 
-  if (cCost < 8 && dVal >= 10){
+  if (cCost < 8 && dVal >= 10) {
     bonus = 1;
     if (dVal >= 20) bonus++;
     return bonus;
@@ -192,12 +240,12 @@ function bonusFromCAndD(cCost, dVal){
 // =========================
 // AHK 同款：D 上限 capD
 // =========================
-function CapA_ToD(aVal){
+function CapA_ToD(aVal) {
   if (aVal === 1) return 6;
   if (aVal === 2) return 9;
   return 0;
 }
-function CapB_ToD(bVal){
+function CapB_ToD(bVal) {
   if (bVal <= 0) return 0;
   if (bVal === 1) return 6;
   if (bVal === 2) return 12;
@@ -206,56 +254,56 @@ function CapB_ToD(bVal){
   if (bVal === 5) return 27;
   return 30;
 }
-function CapC_ToD(cCost){
+function CapC_ToD(cCost) {
   if (cCost >= 36) return 20;
   if (cCost >= 26) return 16;
   if (cCost >= 22) return 12;
   if (cCost >= 18) return 10;
-  if (cCost >= 8)  return 6;
-  if (cCost >= 4)  return 2;
+  if (cCost >= 8) return 6;
+  if (cCost >= 4) return 2;
   return 0;
 }
-function D_MaxByABC(aVal, bVal, cCost){
+function D_MaxByABC(aVal, bVal, cCost) {
   return 20 + CapA_ToD(aVal) + CapB_ToD(bVal) + CapC_ToD(cCost);
 }
 
 // =========================
 // Candidates 生成（對齊 AHK）
 // =========================
-function genLegalCCosts(){
-  const levels = [1,2,3,4,5,6,8,10,13,18];
+function genLegalCCosts() {
+  const levels = [1, 2, 3, 4, 5, 6, 8, 10, 13, 18];
   const set = new Set([0]);
 
   for (const a of levels) set.add(a);
-  for (const a of levels){
-    for (const b of levels){
+  for (const a of levels) {
+    for (const b of levels) {
       const sum = a + b;
       if (sum <= 36) set.add(sum);
     }
   }
-  return Array.from(set).sort((a,b)=>a-b);
+  return Array.from(set).sort((a, b) => a - b);
 }
 
-function genCandidatesByD(targetD){
+function genCandidatesByD(targetD) {
   const candidates = [];
-  const xList = [0,1,2];
-  const yList = [0,1,2,3,4,5,6];
+  const xList = [0, 1, 2];
+  const yList = [0, 1, 2, 3, 4, 5, 6];
   const cList = genLegalCCosts();
 
-  for (const xVal of xList){
-    for (const yVal of yList){
-      for (const cCost of cList){
+  for (const xVal of xList) {
+    for (const yVal of yList) {
+      for (const cCost of cList) {
         const base = D_A(xVal) + D_B(yVal) + D_C(cCost);
         if (base > targetD) continue;
 
         let capD = D_MaxByABC(xVal, yVal, cCost);
         if (capD > 79) capD = 79;
 
-        for (let dVal=0; dVal<=capD; dVal++){
+        for (let dVal = 0; dVal <= capD; dVal++) {
           const bonus = bonusFromCAndD(cCost, dVal);
           const totalD = base + dVal + bonus;
-          if (totalD === targetD){
-            candidates.push({x:xVal,y:yVal,c:cCost,d:dVal});
+          if (totalD === targetD) {
+            candidates.push({ x: xVal, y: yVal, c: cCost, d: dVal });
           }
         }
       }
@@ -267,7 +315,7 @@ function genCandidatesByD(targetD){
 // =========================
 // 缺額策略（對齊 AHK PolicySoftScore）
 // =========================
-function buildPolicyFromUI(){
+function buildPolicyFromUI() {
   const picks = [
     document.getElementById("lack1")?.value || "none",
     document.getElementById("lack2")?.value || "none",
@@ -276,48 +324,47 @@ function buildPolicyFromUI(){
   ];
 
   const weights = [1, 20, 200, 2000];
-  const ban = {x:true,y:true,c:true,d:true};
+  const ban = { x: true, y: true, c: true, d: true };
   const w = {};
 
-  const anyAllow = picks.some(v => v !== "none");
-  if (!anyAllow) return {enabled:false, ban, w};
+  const anyAllow = picks.some((v) => v !== "none");
+  if (!anyAllow) return { enabled: false, ban, w };
 
-  for (let i=0;i<4;i++){
+  for (let i = 0; i < 4; i++) {
     const v = picks[i];
     if (v === "none") continue;
     ban[v] = false;
     w[v] = weights[i];
   }
 
-  return {enabled:true, ban, w};
+  return { enabled: true, ban, w };
 }
 
-function policySoftScore(lackX, lackY, lackC, lackD, policy){
-  if (!policy.enabled){
-    // AHK 預設：C > D > Y > X
-    return lackC*100 + lackD*30 + lackY*10 + lackX*10;
+function policySoftScore(lackX, lackY, lackC, lackD, policy) {
+  if (!policy.enabled) {
+    return lackC * 100 + lackD * 30 + lackY * 10 + lackX * 10;
   }
 
-  if (policy.ban.x && lackX>0) return 1e18;
-  if (policy.ban.y && lackY>0) return 1e18;
-  if (policy.ban.c && lackC>0) return 1e18;
-  if (policy.ban.d && lackD>0) return 1e18;
+  if (policy.ban.x && lackX > 0) return 1e18;
+  if (policy.ban.y && lackY > 0) return 1e18;
+  if (policy.ban.c && lackC > 0) return 1e18;
+  if (policy.ban.d && lackD > 0) return 1e18;
 
   const wx = policy.w.x ?? 999999;
   const wy = policy.w.y ?? 999999;
   const wc = policy.w.c ?? 999999;
   const wd = policy.w.d ?? 999999;
 
-  return (lackX*lackX)*wx + (lackY*lackY)*wy + (lackC*lackC)*wc + (lackD*lackD)*wd;
+  return (lackX * lackX) * wx + (lackY * lackY) * wy + (lackC * lackC) * wc + (lackD * lackD) * wd;
 }
 
 // =========================
 // 排序 / 去重 / 切片（對齊 AHK）
 // =========================
-function uniqueCandidates(list){
+function uniqueCandidates(list) {
   const seen = new Set();
   const out = [];
-  for (const p of list){
+  for (const p of list) {
     const key = `${p.x}-${p.y}-${p.c}-${p.d}`;
     if (seen.has(key)) continue;
     seen.add(key);
@@ -326,13 +373,13 @@ function uniqueCandidates(list){
   return out;
 }
 
-function sliceCandidates(list, startIdx, limit){
+function sliceCandidates(list, startIdx, limit) {
   const out = [];
   const len = list.length;
   if (!len || limit < 1) return out;
 
-  let cur = ((startIdx - 1) % len + len) % len; // 0-based safe
-  for (let i=0;i<limit;i++){
+  let cur = ((startIdx - 1) % len + len) % len;
+  for (let i = 0; i < limit; i++) {
     out.push(list[cur]);
     cur++;
     if (cur >= len) cur = 0;
@@ -340,27 +387,26 @@ function sliceCandidates(list, startIdx, limit){
   return out;
 }
 
-function sortCandidatesByStock(cands, remC, remD, remX, remY, preferCommon=false){
-  const den = (x)=> ((x+1)<=0 ? 1 : (x+1));
+function sortCandidatesByStock(cands, remC, remD, remX, remY, preferCommon = false) {
+  const den = (x) => ((x + 1) <= 0 ? 1 : (x + 1));
 
   let wc, wd, wx, wy;
 
-  if (preferCommon){
-    // count > 2：硬解時偏好先吃相思/幽香（讓 x/y 相對便宜）
+  if (preferCommon) {
     wc = 30 + (remD + 1) / den(remC) * 12;
     wd = 10;
     wx = 1 + 200 / den(remX);
     wy = 1 + 120 / den(remY);
-  }else{
+  } else {
     wc = 1 + (remD + 1) / den(remC) * 6;
     wd = 1;
     wx = 20 + 2000 / den(remX);
     wy = 5 + 3000 / den(remY);
   }
 
-  return [...cands].sort((a,b)=>{
-    const sa = a.c*wc + a.d*wd + a.x*wx + a.y*wy;
-    const sb = b.c*wc + b.d*wd + b.x*wx + b.y*wy;
+  return [...cands].sort((a, b) => {
+    const sa = a.c * wc + a.d * wd + a.x * wx + a.y * wy;
+    const sb = b.c * wc + b.d * wd + b.x * wx + b.y * wy;
     return sa - sb;
   });
 }
@@ -368,111 +414,111 @@ function sortCandidatesByStock(cands, remC, remD, remX, remY, preferCommon=false
 // =========================
 // PickCombo（對齊 AHK）
 // =========================
-function pickCombo(cands, n, remX, remY, remC, remD, modeHard, timeLimitMs, preferCommon, policy){
+function pickCombo(cands, n, remX, remY, remC, remD, modeHard, timeLimitMs, preferCommon, policy) {
   const start = performance.now();
   let bestScore = 1e18;
   let bestList = [];
   const chosen = [];
 
-  const max0 = (v)=> v>0?v:0;
+  const max0 = (v) => (v > 0 ? v : 0);
 
-  function scoreHard(sumX,sumY,sumC,sumD){
+  function scoreHard(sumX, sumY, sumC, sumD) {
     const dx = remX - sumX;
     const dy = remY - sumY;
     const dc = remC - sumC;
     const dd = remD - sumD;
-    if (dx<0 || dy<0 || dc<0 || dd<0) return 1e18;
+    if (dx < 0 || dy < 0 || dc < 0 || dd < 0) return 1e18;
 
-    let wC,wD,wX,wY;
-    if (preferCommon){
-      wC=2; wD=2; wX=25; wY=25;
-    }else{
-      wC=10; wD=10; wX=1; wY=1;
+    let wC, wD, wX, wY;
+    if (preferCommon) {
+      wC = 2; wD = 2; wX = 25; wY = 25;
+    } else {
+      wC = 10; wD = 10; wX = 1; wY = 1;
     }
-    return (dc*dc)*wC + (dd*dd)*wD + (dx*dx)*wX + (dy*dy)*wY;
+    return (dc * dc) * wC + (dd * dd) * wD + (dx * dx) * wX + (dy * dy) * wY;
   }
 
-  function scoreSoft(sumX,sumY,sumC,sumD){
+  function scoreSoft(sumX, sumY, sumC, sumD) {
     const lackX = max0(sumX - remX);
     const lackY = max0(sumY - remY);
     const lackC = max0(sumC - remC);
     const lackD = max0(sumD - remD);
-    return policySoftScore(lackX,lackY,lackC,lackD, policy);
+    return policySoftScore(lackX, lackY, lackC, lackD, policy);
   }
 
-  function lowerBoundHard(sumX,sumY,sumC,sumD){
+  function lowerBoundHard(sumX, sumY, sumC, sumD) {
     const dx = remX - sumX;
     const dy = remY - sumY;
     const dc = remC - sumC;
     const dd = remD - sumD;
-    if (dx<0 || dy<0 || dc<0 || dd<0) return 1e18;
-    return (dc*dc)*10 + (dd*dd)*10 + (dx*dx) + (dy*dy);
+    if (dx < 0 || dy < 0 || dc < 0 || dd < 0) return 1e18;
+    return (dc * dc) * 10 + (dd * dd) * 10 + (dx * dx) + (dy * dy);
   }
 
-  function recur(startIdx, left, sumX,sumY,sumC,sumD){
+  function recur(startIdx, left, sumX, sumY, sumC, sumD) {
     if (performance.now() - start > timeLimitMs) return;
 
-    if (left === 0){
-      const sc = modeHard ? scoreHard(sumX,sumY,sumC,sumD) : scoreSoft(sumX,sumY,sumC,sumD);
-      if (sc < bestScore){
+    if (left === 0) {
+      const sc = modeHard ? scoreHard(sumX, sumY, sumC, sumD) : scoreSoft(sumX, sumY, sumC, sumD);
+      if (sc < bestScore) {
         bestScore = sc;
         bestList = chosen.slice();
       }
       return;
     }
 
-    if (modeHard){
-      if (sumX>remX || sumY>remY || sumC>remC || sumD>remD) return;
-      if (lowerBoundHard(sumX,sumY,sumC,sumD) >= bestScore) return;
+    if (modeHard) {
+      if (sumX > remX || sumY > remY || sumC > remC || sumD > remD) return;
+      if (lowerBoundHard(sumX, sumY, sumC, sumD) >= bestScore) return;
     }
 
-    for (let i=startIdx; i<cands.length; i++){
+    for (let i = startIdx; i < cands.length; i++) {
       const p = cands[i];
       chosen.push(p);
-      recur(i, left-1, sumX+p.x, sumY+p.y, sumC+p.c, sumD+p.d);
+      recur(i, left - 1, sumX + p.x, sumY + p.y, sumC + p.c, sumD + p.d);
       chosen.pop();
       if (performance.now() - start > timeLimitMs) return;
     }
   }
 
-  if (n<=0) return {score:0, list:[]};
-  if (!cands.length) return {score:1e18, list:[]};
+  if (n <= 0) return { score: 0, list: [] };
+  if (!cands.length) return { score: 1e18, list: [] };
 
-  recur(0, n, 0,0,0,0);
-  return {score:bestScore, list:bestList};
+  recur(0, n, 0, 0, 0, 0);
+  return { score: bestScore, list: bestList };
 }
 
 // =========================
 // permutations（對齊 AHK）
 // =========================
-function permutations(arr){
+function permutations(arr) {
   const res = [];
   const used = Array(arr.length).fill(false);
   const path = [];
-  function dfs(){
-    if (path.length === arr.length){
+  function dfs() {
+    if (path.length === arr.length) {
       res.push(path.slice());
       return;
     }
-    for (let i=0;i<arr.length;i++){
+    for (let i = 0; i < arr.length; i++) {
       if (used[i]) continue;
-      used[i]=true;
+      used[i] = true;
       path.push(arr[i]);
       dfs();
       path.pop();
-      used[i]=false;
+      used[i] = false;
     }
   }
   dfs();
   return res;
 }
 
-function calcFinalLack(remX, remY, usedType, ownByType){
+function calcFinalLack(remX, remY, usedType, ownByType) {
   let lack = 0;
   if (remX < 0) lack += -remX;
   if (remY < 0) lack += -remY;
 
-  for (const t of ["強攻","敏攻","控制","輔助"]){
+  for (const t of ["強攻", "敏攻", "控制", "輔助"]) {
     const diffC = ownByType[t].c - usedType[t].c;
     const diffD = ownByType[t].d - usedType[t].d;
     if (diffC < 0) lack += -diffC;
@@ -484,24 +530,23 @@ function calcFinalLack(remX, remY, usedType, ownByType){
 // =========================
 // computeLikeAHK（核心流程）
 // =========================
-function computeLikeAHK({candidates, counts, ownCommon, ownByType, policy}){
-  const typeNames = ["強攻","敏攻","控制","輔助"];
+function computeLikeAHK({ candidates, counts, ownCommon, ownByType, policy }) {
+  const typeNames = ["強攻", "敏攻", "控制", "輔助"];
 
-  // baseOrder：依庫存總和 少→多
   const ownSum = {};
   for (const t of typeNames) ownSum[t] = ownByType[t].c + ownByType[t].d;
-  const baseOrder = [...typeNames].sort((a,b)=> ownSum[a]-ownSum[b]);
+  const baseOrder = [...typeNames].sort((a, b) => ownSum[a] - ownSum[b]);
 
   let ordersToTry = [];
-  if (TRY_ALL_ORDERS){
+  if (TRY_ALL_ORDERS) {
     const perms = permutations(baseOrder);
     ordersToTry.push(baseOrder);
     ordersToTry.push([...baseOrder].reverse());
-    for (const p of perms){
+    for (const p of perms) {
       if (ordersToTry.length >= MAX_ORDER_TRIES) break;
       ordersToTry.push(p);
     }
-  }else{
+  } else {
     ordersToTry = [baseOrder];
   }
 
@@ -512,40 +557,37 @@ function computeLikeAHK({candidates, counts, ownCommon, ownByType, policy}){
   let bestRemY = 0;
   let bestOrder = null;
 
-  for (const tryOrder of ordersToTry){
-    for (let sliceNo=1; sliceNo<=SLICE_TRIES; sliceNo++){
-
+  for (const tryOrder of ordersToTry) {
+    for (let sliceNo = 1; sliceNo <= SLICE_TRIES; sliceNo++) {
       let remX = ownCommon.x;
       let remY = ownCommon.y;
 
       const usedType = {
-        "強攻":{c:0,d:0},
-        "敏攻":{c:0,d:0},
-        "控制":{c:0,d:0},
-        "輔助":{c:0,d:0}
+        "強攻": { c: 0, d: 0 },
+        "敏攻": { c: 0, d: 0 },
+        "控制": { c: 0, d: 0 },
+        "輔助": { c: 0, d: 0 }
       };
 
       const picked = {};
       let ok = true;
 
-      for (const typeName of tryOrder){
+      for (const typeName of tryOrder) {
         const n = counts[typeName] || 0;
 
-        if (n === 0){
+        if (n === 0) {
           picked[typeName] = [];
           continue;
         }
-        if (n < 0){
+        if (n < 0) {
           ok = false;
           break;
         }
 
         const remC = ownByType[typeName].c - usedType[typeName].c;
         const remD = ownByType[typeName].d - usedType[typeName].d;
-
         const preferCommon = n > 2;
 
-        // ---------- hard：依庫存排序 ----------
         let localAll = sortCandidatesByStock(candidates, remC, remD, remX, remY, preferCommon);
         localAll = uniqueCandidates(localAll);
 
@@ -557,8 +599,7 @@ function computeLikeAHK({candidates, counts, ownCommon, ownByType, policy}){
 
         let res = pickCombo(localCands, n, remX, remY, remC, remD, true, PICK_TIMELIMIT_MS, preferCommon, policy);
 
-        // ---------- hard 失敗才 soft；soft 排序不 preferCommon ----------
-        if ((!res.list || res.list.length===0) && ALLOW_SOFT){
+        if ((!res.list || res.list.length === 0) && ALLOW_SOFT) {
           let localAll2 = sortCandidatesByStock(candidates, remC, remD, remX, remY, false);
           localAll2 = uniqueCandidates(localAll2);
 
@@ -571,16 +612,15 @@ function computeLikeAHK({candidates, counts, ownCommon, ownByType, policy}){
           res = pickCombo(localCands2, n, remX, remY, remC, remD, false, PICK_TIMELIMIT_MS, false, policy);
         }
 
-        if (!res.list || res.list.length===0){
+        if (!res.list || res.list.length === 0) {
           ok = false;
           break;
         }
 
         picked[typeName] = res.list;
 
-        // 扣資源
-        let sumX=0,sumY=0,sumC2=0,sumD2=0;
-        for (const p of res.list){
+        let sumX = 0, sumY = 0, sumC2 = 0, sumD2 = 0;
+        for (const p of res.list) {
           sumX += p.x; sumY += p.y; sumC2 += p.c; sumD2 += p.d;
         }
 
@@ -594,11 +634,11 @@ function computeLikeAHK({candidates, counts, ownCommon, ownByType, policy}){
 
       const lack = calcFinalLack(remX, remY, usedType, ownByType);
 
-      if (lack === 0){
-        return { ok:true, picked, usedType, remX, remY, order: tryOrder, lack:0 };
+      if (lack === 0) {
+        return { ok: true, picked, usedType, remX, remY, order: tryOrder, lack: 0 };
       }
 
-      if (!REQUIRE_PERFECT && lack < bestLack){
+      if (!REQUIRE_PERFECT && lack < bestLack) {
         bestLack = lack;
         bestPicked = picked;
         bestUsedType = usedType;
@@ -609,8 +649,8 @@ function computeLikeAHK({candidates, counts, ownCommon, ownByType, policy}){
     }
   }
 
-  if (!bestOrder) return { ok:false };
-  return { ok:true, picked: bestPicked, usedType: bestUsedType, remX: bestRemX, remY: bestRemY, order: bestOrder, lack: bestLack };
+  if (!bestOrder) return { ok: false };
+  return { ok: true, picked: bestPicked, usedType: bestUsedType, remX: bestRemX, remY: bestRemY, order: bestOrder, lack: bestLack };
 }
 
 // =========================
@@ -618,7 +658,7 @@ function computeLikeAHK({candidates, counts, ownCommon, ownByType, policy}){
 // =========================
 const STORAGE_KEY = "herb_calc_form_v1";
 
-function saveForm(){
+function saveForm() {
   const data = {};
   document.querySelectorAll("input, select").forEach(el => {
     if (!el.id) return;
@@ -626,16 +666,16 @@ function saveForm(){
   });
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
-function loadForm(){
+function loadForm() {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return;
-  try{
+  try {
     const data = JSON.parse(raw);
-    for (const id in data){
+    for (const id in data) {
       const el = document.getElementById(id);
       if (el) el.value = data[id];
     }
-  }catch(e){
+  } catch (e) {
     console.warn("讀取表單失敗", e);
   }
 }
@@ -656,7 +696,7 @@ btn.addEventListener("click", (e) => {
   btn.disabled = true;
 
   setTimeout(() => {
-    try{
+    try {
       clearTable();
       clearDiffTable();
 
@@ -664,27 +704,26 @@ btn.addEventListener("click", (e) => {
       const targetD = targetDByStage(stage);
 
       const ownCommon = {
-        x: Number(document.getElementById("ownX").value)||0,
-        y: Number(document.getElementById("ownY").value)||0,
+        x: Number(document.getElementById("ownX").value) || 0,
+        y: Number(document.getElementById("ownY").value) || 0,
       };
 
       const ownByType = {
-        "強攻": { c:Number(document.getElementById("ownC_str").value)||0, d:Number(document.getElementById("ownD_str").value)||0 },
-        "敏攻": { c:Number(document.getElementById("ownC_agi").value)||0, d:Number(document.getElementById("ownD_agi").value)||0 },
-        "控制": { c:Number(document.getElementById("ownC_ctl").value)||0, d:Number(document.getElementById("ownD_ctl").value)||0 },
-        "輔助": { c:Number(document.getElementById("ownC_sup").value)||0, d:Number(document.getElementById("ownD_sup").value)||0 }
+        "強攻": { c: Number(document.getElementById("ownC_str").value) || 0, d: Number(document.getElementById("ownD_str").value) || 0 },
+        "敏攻": { c: Number(document.getElementById("ownC_agi").value) || 0, d: Number(document.getElementById("ownD_agi").value) || 0 },
+        "控制": { c: Number(document.getElementById("ownC_ctl").value) || 0, d: Number(document.getElementById("ownD_ctl").value) || 0 },
+        "輔助": { c: Number(document.getElementById("ownC_sup").value) || 0, d: Number(document.getElementById("ownD_sup").value) || 0 }
       };
 
       const counts = {
-        "強攻": Number(document.getElementById("cnt_str").value)||0,
-        "敏攻": Number(document.getElementById("cnt_agi").value)||0,
-        "控制": Number(document.getElementById("cnt_ctl").value)||0,
-        "輔助": Number(document.getElementById("cnt_sup").value)||0
+        "強攻": Number(document.getElementById("cnt_str").value) || 0,
+        "敏攻": Number(document.getElementById("cnt_agi").value) || 0,
+        "控制": Number(document.getElementById("cnt_ctl").value) || 0,
+        "輔助": Number(document.getElementById("cnt_sup").value) || 0
       };
 
-      // 至少一個
-      const sumCounts = counts["強攻"]+counts["敏攻"]+counts["控制"]+counts["輔助"];
-      if (sumCounts <= 0){
+      const sumCounts = counts["強攻"] + counts["敏攻"] + counts["控制"] + counts["輔助"];
+      if (sumCounts <= 0) {
         addRow(1, "（請至少輸入一個數量）", "-", "-", "-", "-");
         showResult();
         return;
@@ -701,38 +740,36 @@ btn.addEventListener("click", (e) => {
         policy
       });
 
-      if (!res.ok){
+      if (!res.ok) {
         addRow(1, "（找不到解：請放寬缺額策略或調大候選/時間）", "-", "-", "-", "-");
         showResult();
         return;
       }
 
-      // 輸出方案（若缺口>0，標記軟解）
       let seq = 1;
       const isSoft = res.lack > 0;
 
-      for (const typeName of res.order){
+      for (const typeName of res.order) {
         const list = res.picked[typeName] || [];
-        for (const p of list){
+        for (const p of list) {
           addRow(seq++, isSoft ? `${typeName}` : typeName, p.x, p.y, p.c, p.d);
         }
       }
 
-      // diffTable（花費用：擁有 - 剩餘）
       addDiffRow("相思", ownCommon.x - res.remX, ownCommon.x);
       addDiffRow("幽香", ownCommon.y - res.remY, ownCommon.y);
 
-      for (const t of ["強攻","敏攻","控制","輔助"]){
+      for (const t of ["強攻", "敏攻", "控制", "輔助"]) {
         addDiffRow(`${t} 大草`, res.usedType[t].c, ownByType[t].c);
         addDiffRow(`${t} 小草`, res.usedType[t].d, ownByType[t].d);
       }
 
       showResult();
 
-    } catch(err){
+    } catch (err) {
       console.error(err);
       alert("計算發生錯誤：\n" + (err?.message || err));
-    } finally{
+    } finally {
       btn.textContent = "開始計算";
       btn.classList.remove("btnLoading");
       btn.disabled = false;

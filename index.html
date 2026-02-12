@@ -80,6 +80,7 @@ td,th{border:1px solid #ccc;padding:6px;text-align:center;}
 .row_ctl { background:#eaf4ff; }   /* 淡藍 */
 .row_agi { background:#f3eaff; }   /* 淡紫 */
 .row_str { background:#fff2e6; }   /* 淡橘 */
+
 @media (max-width: 600px){
 
   body{
@@ -106,12 +107,46 @@ td,th{border:1px solid #ccc;padding:6px;text-align:center;}
   }
 
 }
+.layout{
+  display: block;
+}
+
+/* 桌機：左右兩欄 */
+@media (min-width: 1024px){
+  .layout{
+    display: grid;
+    grid-template-columns: 520px 1fr; /* 左固定、右自適應 */
+    gap: 12px;
+    padding: 10px;
+  }
+
+  #pageInput{
+    padding: 0;
+  }
+
+  #pageResult{
+    padding: 0;
+  }
+
+  .resultPane{
+    position: sticky;
+    top: 10px;
+    height: calc(100vh - 20px);
+    overflow: auto;
+  }
+}
+/* 桌機：強制顯示結果區（即使有 hidden） */
+@media (min-width: 1024px){
+  #pageResult.hidden{
+    display: block !important;
+  }
+}
 
 </style>
 </head>
 
 <body>
-
+<div class="layout">
 <div id="pageInput" class="page">
 
 <h3>仙草共鳴計算器</h3>
@@ -256,7 +291,7 @@ td,th{border:1px solid #ccc;padding:6px;text-align:center;}
 </div>
 
 
-<div id="pageResult" class="page hidden">
+<div id="pageResult" class="page hidden resultPane">
 
 <h3>計算結果</h3>
 
@@ -278,6 +313,7 @@ td,th{border:1px solid #ccc;padding:6px;text-align:center;}
 
 <button class="btnBack" onclick="back()">返回</button>
 
+</div>
 </div>
 
 <script type="module" src="/src/main.js"></script>
