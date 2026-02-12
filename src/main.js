@@ -20,75 +20,64 @@ const SLICE_TRIES = 4;
 // =========================
 // UI helpers（✅修正：桌機不切頁、手機切頁）
 // =========================
+// =========================
+// UI helpers（✅桌機不切頁、手機切頁）
+// =========================
 function isDesktop() {
-  return window.matchMedia("(min-width: 900px)").matches;
+  return window.matchMedia("(min-width: 1024px)").matches;
 }
 
-function ensureLayoutByWidth() {
+// 桌機：永遠兩邊都顯示
+function ensureDesktopTwoPane() {
   const pageInput = document.getElementById("pageInput");
   const pageResult = document.getElementById("pageResult");
   if (!pageInput || !pageResult) return;
 
   if (isDesktop()) {
-    // 桌機：兩邊都顯示
     pageInput.classList.remove("hidden");
     pageResult.classList.remove("hidden");
-  } else {
-    // 手機：預設顯示輸入、隱藏結果（不想這樣可改掉）
-    if (!pageInput.classList.contains("hidden")) {
-      // 保持
-    } else {
-      pageInput.classList.remove("hidden");
-    }
-    pageResult.classList.add("hidden");
   }
 }
 
+// 切頁：手機才切；桌機不切（右欄直接顯示）
 function showResult() {
-  const pageInput = document.getElementById("pageInput");
-  const pageResult = document.getElementById("pageResult");
-  if (!pageInput || !pageResult) return;
+  const a = document.getElementById("pageInput");
+  const b = document.getElementById("pageResult");
+  if (!a || !b) return;
 
   if (isDesktop()) {
-    // 桌機：不切頁，只確保結果可見，並把右側捲到頂
-    pageInput.classList.remove("hidden");
-    pageResult.classList.remove("hidden");
-    pageResult.scrollTo({ top: 0, behavior: "smooth" });
+    a.classList.remove("hidden");
+    b.classList.remove("hidden");
     return;
   }
 
-  // 手機：切到結果頁
-  pageInput.classList.add("hidden");
-  pageResult.classList.remove("hidden");
+  a.classList.add("hidden");
+  b.classList.remove("hidden");
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function back() {
-  const pageInput = document.getElementById("pageInput");
-  const pageResult = document.getElementById("pageResult");
-  if (!pageInput || !pageResult) return;
+  const a = document.getElementById("pageInput");
+  const b = document.getElementById("pageResult");
+  if (!a || !b) return;
 
   if (isDesktop()) {
-    // 桌機：不需要切回（你也可以改成清空結果）
     window.scrollTo({ top: 0, behavior: "smooth" });
     return;
   }
 
-  // 手機：回到輸入頁
-  pageResult.classList.add("hidden");
-  pageInput.classList.remove("hidden");
+  b.classList.add("hidden");
+  a.classList.remove("hidden");
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 // 讓 HTML 的 onclick="back()" 可用
 window.back = back;
 
-// 進入頁面先依螢幕大小調整
-window.addEventListener("DOMContentLoaded", ensureLayoutByWidth);
-window.addEventListener("resize", () => {
-  // 避免你手機橫放/桌機縮放時怪掉
-  ensureLayoutByWidth();
-});
+// 只在載入 & 變成桌機尺寸時，強制兩欄顯示（不去干擾手機切頁）
+window.addEventListener("DOMContentLoaded", ensureDesktopTwoPane);
+window.addEventListener("resize", ensureDesktopTwoPane);
+
 
 // =========================
 // 小工具
@@ -688,7 +677,7 @@ document.querySelectorAll("input, select").forEach(el => {
 // =========================
 // 主流程：按鈕事件
 // =========================
-btn.addEventListener("click", (e) => {
+if (btn) btn.addEventListener("click", (e) => {
   e.preventDefault();
 
   btn.textContent = "計算中…";
@@ -776,3 +765,86 @@ btn.addEventListener("click", (e) => {
     }
   }, 20);
 });
+// ====== 教學彈窗 + 大草等級對照 ======
+function cCostToLevelText(n){
+  const map = {
+    1:"右1等",
+    2:"右2等",
+    3:"右3等",
+    4:"右4等",
+    5:"右5等",
+    6:"右6等",
+    7:"右6等+左1等",
+    8:"右7等",
+    9:"右7等+左1等",
+    10:"右8等",
+    11:"右8等+左1等",
+    12:"右8等+左2等",
+    13:"右9等",
+    14:"右9等+左1等",
+    15:"右9等+左2等",
+    16:"右9等+左3等",
+    17:"右9等+左4等",
+    18:"右10等",
+    19:"右10等+左1等",
+    20:"右10等+左2等",
+    21:"右10等+左3等",
+    22:"右10等+左4等",
+    23:"右10等+左5等",
+    24:"右10等+左6等",
+    25:"無該組合，請重新確認",
+    26:"右10等+左7等",
+    27:"無該組合，請重新確認",
+    28:"右10等+左8等",
+    29:"無該組合，請重新確認",
+    30:"無該組合，請重新確認",
+    31:"右10等+左9等",
+    32:"無該組合，請重新確認",
+    33:"無該組合，請重新確認",
+    34:"無該組合，請重新確認",
+    35:"無該組合，請重新確認",
+    36:"右10等+左10等",
+  };
+  return map[n] ?? "請根據計算結果輸入(1~36)";
+}
+
+function setupTutorialUI(){
+  const modal = document.getElementById("tutorialModal");
+  const openBtn = document.getElementById("btnTutorial");
+  const closeBtn = document.getElementById("btnTutorialClose");
+  const backdrop = modal?.querySelector(".modalBackdrop");
+
+  const input = document.getElementById("cCostInput");
+  const output = document.getElementById("cCostOutput");
+
+  if (!modal || !openBtn || !closeBtn || !input || !output) return;
+
+  const open = () => {
+    modal.classList.remove("hidden");
+    modal.setAttribute("aria-hidden", "false");
+    input.focus();
+    output.textContent = cCostToLevelText(Number(input.value));
+  };
+
+  const close = () => {
+    modal.classList.add("hidden");
+    modal.setAttribute("aria-hidden", "true");
+  };
+
+  openBtn.addEventListener("click", open);
+  closeBtn.addEventListener("click", close);
+  backdrop?.addEventListener("click", close);
+
+  // ESC 關閉
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !modal.classList.contains("hidden")) close();
+  });
+
+  // 輸入即時更新
+  input.addEventListener("input", () => {
+    const v = Number(String(input.value).trim());
+    output.textContent = cCostToLevelText(v);
+  });
+}
+
+window.addEventListener("DOMContentLoaded", setupTutorialUI);
