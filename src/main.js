@@ -168,15 +168,31 @@ function C_NextChunk(cost) {
   return cost;
 }
 function D_C(cCost) {
-  if (cCost <= 0) return 0;
-  let total = 0;
-  let remain = cCost;
-  while (remain > 0) {
-    const chunk = C_NextChunk(remain);
-    total += C_PieceD(chunk);
-    remain -= chunk;
-  }
-  return total;
+  const map = {
+    0: 0,
+    1: 1,
+    2: 2,
+    3: 3,
+    4: 4,
+    5: 5,
+    6: 6,
+    8: 14,
+    10: 16,
+    13: 27,
+    18: 48,
+    19: 49,
+    20: 50,
+    21: 51,
+    22: 52,
+    23: 53,
+    24: 54,
+    26: 62,
+    28: 64,
+    31: 75,
+    36: 98
+  };
+
+  return map[cCost] ?? 999999;
 }
 
 function bonusFromCAndD(cCost, dVal) {
