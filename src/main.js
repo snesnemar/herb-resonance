@@ -86,7 +86,9 @@ function targetDByStage(stageIdx) {
   if (stageIdx === 1) return 48;
   if (stageIdx === 2) return 73;
   if (stageIdx === 3) return 108;
-  return 175;
+  if (stageIdx === 4) return 175;
+  if (stageIdx === 5) return 142;
+  return 0;
 }
 
 function clearTable() {
