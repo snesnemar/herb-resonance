@@ -372,7 +372,52 @@
     .hiddenCol {
       display: none;
     }
-    
+
+    .miniLabel {
+      font-size: 12px;
+      color: #888;
+      white-space: nowrap;
+    }
+
+    .stageDistOnly {
+      display: none;
+    }
+
+    .hint {
+      color: #666;
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+
+  .countStageRow {
+  display: grid;
+  grid-template-columns:
+    40px
+    minmax(60px, 1fr)
+    40px
+    minmax(80px, 1fr)
+    50px
+    minmax(80px, 1fr);
+
+  gap: 8px;
+  align-items: center;
+}
+
+.countStageRow label {
+  font-weight: 600;
+}
+
+.countStageRow span {
+  font-size: 12px;
+  color: #888;
+  white-space: nowrap;
+}
+
+.countStageRow input,
+.countStageRow select {
+  width: 100%;
+  box-sizing: border-box;
+}
   </style>
 </head>
 
@@ -406,66 +451,143 @@
         </div>
       </div>
 
-      <div class="card">
+
+      <div id="grassNormalCard" class="card">
         <div class="sectionTitle">強攻（大草 / 小草）</div>
         <div class="row">
-          <input id="ownC_str" placeholder="大草" inputmode="numeric">
-          <input id="ownD_str" placeholder="小草" inputmode="numeric">
+          <input id="ownC_str_compact" placeholder="大草" inputmode="numeric">
+          <input id="ownD_str_compact" placeholder="小草" inputmode="numeric">
         </div>
 
         <div class="sectionTitle">敏攻（大草 / 小草）</div>
         <div class="row">
-          <input id="ownC_agi" placeholder="大草" inputmode="numeric">
-          <input id="ownD_agi" placeholder="小草" inputmode="numeric">
+          <input id="ownC_agi_compact" placeholder="大草" inputmode="numeric">
+          <input id="ownD_agi_compact" placeholder="小草" inputmode="numeric">
         </div>
 
         <div class="sectionTitle">控制（大草 / 小草）</div>
         <div class="row">
-          <input id="ownC_ctl" placeholder="大草" inputmode="numeric">
-          <input id="ownD_ctl" placeholder="小草" inputmode="numeric">
+          <input id="ownC_ctl_compact" placeholder="大草" inputmode="numeric">
+          <input id="ownD_ctl_compact" placeholder="小草" inputmode="numeric">
         </div>
 
 
         <div class="sectionTitle">輔助（大草 / 小草）</div>
         <div class="row">
-          <input id="ownC_sup" placeholder="大草" inputmode="numeric">
-          <input id="ownD_sup" placeholder="小草" inputmode="numeric">
+          <input id="ownC_sup_compact" placeholder="大草" inputmode="numeric">
+          <input id="ownD_sup_compact" placeholder="小草" inputmode="numeric">
         </div>
       </div>
 
 
-      <div class="card">
-        <div class="sectionTitle">各類型要做幾個</div>
-        <div class="row">
 
+      <div id="grassCompactCard" class="card">
+        <div class="sectionTitle">各類型大 / 小草數</div>
+
+        <div class="row">
           <div class="inlineField">
             <label>強攻</label>
-            <input id="cnt_str" inputmode="numeric">
+            <input id="ownC_str" placeholder="大草" inputmode="numeric">
+            <input id="ownD_str" placeholder="小草" inputmode="numeric">
           </div>
 
           <div class="inlineField">
             <label>敏攻</label>
-            <input id="cnt_agi" inputmode="numeric">
+            <input id="ownC_agi" placeholder="大草" inputmode="numeric">
+            <input id="ownD_agi" placeholder="小草" inputmode="numeric">
           </div>
-
         </div>
 
         <div class="row">
-
           <div class="inlineField">
             <label>控制</label>
-            <input id="cnt_ctl" inputmode="numeric">
+            <input id="ownC_ctl" placeholder="大草" inputmode="numeric">
+            <input id="ownD_ctl" placeholder="小草" inputmode="numeric">
           </div>
 
           <div class="inlineField">
             <label>輔助</label>
-            <input id="cnt_sup" inputmode="numeric">
+            <input id="ownC_sup" placeholder="大草" inputmode="numeric">
+            <input id="ownD_sup" placeholder="小草" inputmode="numeric">
           </div>
-
         </div>
       </div>
 
+<!-- 一般階段：各類型要做幾個 -->
+<div id="countNormalCard" class="card">
+  <div class="sectionTitle">各類型要做幾個</div>
 
+  <div class="row">
+    <div class="inlineField">
+      <label>強攻</label>
+      <input id="cnt_str" inputmode="numeric">
+    </div>
+
+    <div class="inlineField">
+      <label>敏攻</label>
+      <input id="cnt_agi" inputmode="numeric">
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="inlineField">
+      <label>控制</label>
+      <input id="cnt_ctl" inputmode="numeric">
+    </div>
+
+    <div class="inlineField">
+      <label>輔助</label>
+      <input id="cnt_sup" inputmode="numeric">
+    </div>
+  </div>
+</div>
+
+<!-- 10階含第二頁：各類型要做幾個 + 階數分布 -->
+<div id="countStageDistCard" class="card">
+  <div class="sectionTitle">
+    各類型要做幾個，以及階數分布（10階 / 9+1階）
+  </div>
+
+  <div class="hint">
+    若不限制，系統自動決定 10階與 9+1階數量
+  </div>
+
+  <div class="countStageRow">
+    <label>強攻</label>
+    <input id="cnt_str_stage" inputmode="numeric">
+    <span>10階</span>
+    <select id="dist_str_10"></select>
+    <span>9+1階</span>
+    <select id="dist_str_91"></select>
+  </div>
+
+  <div class="countStageRow">
+    <label>敏攻</label>
+    <input id="cnt_agi_stage" inputmode="numeric">
+    <span>10階</span>
+    <select id="dist_agi_10"></select>
+    <span>9+1階</span>
+    <select id="dist_agi_91"></select>
+  </div>
+
+  <div class="countStageRow">
+    <label>控制</label>
+    <input id="cnt_ctl_stage" inputmode="numeric">
+    <span>10階</span>
+    <select id="dist_ctl_10"></select>
+    <span>9+1階</span>
+    <select id="dist_ctl_91"></select>
+  </div>
+
+  <div class="countStageRow">
+    <label>輔助</label>
+    <input id="cnt_sup_stage" inputmode="numeric">
+    <span>10階</span>
+    <select id="dist_sup_10"></select>
+    <span>9+1階</span>
+    <select id="dist_sup_91"></select>
+  </div>
+</div>
       <div class="card">
         <div class="sectionTitle">缺額策略（1最優先缺，5最不希望缺少）</div>
         <div class="hint">
@@ -585,7 +707,8 @@
       </div>
 
       <button class="btnBack" onclick="back()">返回 <i class="fa-solid fa-rotate-left"></i></button>
-      <button id="btnSaveImage" type="button" class="btnSaveImage" style="display:none;">保存結果圖片 <i class="fa-solid fa-cloud-arrow-down"></i></button>
+      <button id="btnSaveImage" type="button" class="btnSaveImage" style="display:none;">保存結果圖片 <i
+          class="fa-solid fa-cloud-arrow-down"></i></button>
       <!-- 教學按鈕 -->
       <button id="btnTutorial" type="button" class="btnTutorial">顯示使用教學 <i class="fa-solid fa-splotch"></i></button>
 

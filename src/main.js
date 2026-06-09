@@ -572,7 +572,7 @@ function calcFinalLack(remX, remY, usedType, ownByType) {
 // computeLikeAHK（核心流程）
 // =========================
 
-function computeLikeAHK({ candidates, counts, ownCommon, ownByType, policy }) {
+function computeLikeAHK({ candidates, counts, ownCommon, ownByType, policy, stageDist }) {
   const typeNames = ["強攻", "敏攻", "控制", "輔助"];
 
   const ownSum = {};
@@ -620,7 +620,21 @@ function computeLikeAHK({ candidates, counts, ownCommon, ownByType, policy }) {
         const remW = ownCommon.w == null ? 999999 : (ownCommon.w - usedW);
         const preferCommon = n > 2;
 
-        let localAll = sortCandidatesByStock(candidates, remC, remD, remX, remY, preferCommon);
+        let localAll = candidates;
+
+        const dist = stageDist?.[typeName];
+
+        if (dist) {
+          if (dist.ten !== null && dist.ten === 0) {
+            localAll = localAll.filter(p => p.stageText !== "10");
+          }
+
+          if (dist.nineOne !== null && dist.nineOne === 0) {
+            localAll = localAll.filter(p => p.stageText !== "9+1");
+          }
+        }
+
+        localAll = sortCandidatesByStock(localAll, remC, remD, remX, remY, preferCommon);
         localAll = uniqueCandidates(localAll);
 
         const limit = Math.max(1, Math.min(MAX_CANDS_PER_TYPE, localAll.length));
@@ -663,6 +677,23 @@ function computeLikeAHK({ candidates, counts, ownCommon, ownByType, policy }) {
         }
 
         picked[typeName] = res.list;
+
+        const distCheck = stageDist?.[typeName];
+
+        if (distCheck) {
+          const picked10 = res.list.filter(p => p.stageText === "10").length;
+          const picked91 = res.list.filter(p => p.stageText === "9+1").length;
+
+          if (distCheck.ten !== null && picked10 !== distCheck.ten) {
+            ok = false;
+            break;
+          }
+
+          if (distCheck.nineOne !== null && picked91 !== distCheck.nineOne) {
+            ok = false;
+            break;
+          }
+        }
 
         let sumX = 0;
         let sumY = 0;
@@ -787,20 +818,28 @@ function refreshStageUI() {
 }
 
 window.addEventListener("DOMContentLoaded", () => {
+  loadForm();
+
+  bindStageDistribution();
 
   loadForm();
+
+  copyNormalCountToStageCount();
+
   refreshStageUI();
+  updateGrassLayoutByStage();
+
+  syncCountInputs();
+  updateCountLayoutByStage();
 
   document.querySelectorAll("input, select").forEach(el => {
     el.addEventListener("change", saveForm);
     el.addEventListener("input", saveForm);
   });
 
-  document.getElementById("stage")?.addEventListener(
-    "change",
-    refreshStageUI
-  );
-
+  document.getElementById("stage")?.addEventListener("change", refreshStageUI);
+  document.getElementById("stage")?.addEventListener("change", updateGrassLayoutByStage);
+  document.getElementById("stage")?.addEventListener("change", updateCountLayoutByStage);
 });
 
 // =========================
@@ -845,6 +884,17 @@ if (btn) btn.addEventListener("click", (e) => {
         "輔助": Number(document.getElementById("cnt_sup").value) || 0
       };
 
+      let stageDist = null;
+
+      if (stage === 6) {
+        stageDist = {
+          "強攻": readStageDistribution("str", counts["強攻"]),
+          "敏攻": readStageDistribution("agi", counts["敏攻"]),
+          "控制": readStageDistribution("ctl", counts["控制"]),
+          "輔助": readStageDistribution("sup", counts["輔助"])
+        };
+      }
+
       const sumCounts = counts["強攻"] + counts["敏攻"] + counts["控制"] + counts["輔助"];
       if (sumCounts <= 0) {
         addRow(1, "（請至少輸入一個數量）", "-", "-", "-", "-", "-", "-", "-");
@@ -885,7 +935,8 @@ if (btn) btn.addEventListener("click", (e) => {
         counts,
         ownCommon,
         ownByType,
-        policy
+        policy,
+        stageDist
       });
 
       if (!res.ok) {
@@ -981,6 +1032,191 @@ function cCostToLevelText(n) {
     36: "右10等+左10等",
   };
   return map[n] ?? "請根據計算結果輸入(1~36)";
+}
+const grassPairs = [
+  ["ownC_str", "ownC_str_compact"],
+  ["ownD_str", "ownD_str_compact"],
+  ["ownC_agi", "ownC_agi_compact"],
+  ["ownD_agi", "ownD_agi_compact"],
+  ["ownC_ctl", "ownC_ctl_compact"],
+  ["ownD_ctl", "ownD_ctl_compact"],
+  ["ownC_sup", "ownC_sup_compact"],
+  ["ownD_sup", "ownD_sup_compact"],
+];
+
+function syncGrassInputs() {
+  grassPairs.forEach(([a, b]) => {
+    const inputA = document.getElementById(a);
+    const inputB = document.getElementById(b);
+    if (!inputA || !inputB) return;
+
+    inputA.addEventListener("input", () => {
+      inputB.value = inputA.value;
+    });
+
+    inputB.addEventListener("input", () => {
+      inputA.value = inputB.value;
+    });
+  });
+}
+
+function updateGrassLayoutByStage() {
+  const stage = document.getElementById("stage").value;
+
+  const normalCard = document.getElementById("grassNormalCard");
+  const compactCard = document.getElementById("grassCompactCard");
+
+  const useCompact = stage === "6";
+
+  normalCard.style.display = useCompact ? "none" : "block";
+  compactCard.style.display = useCompact ? "block" : "none";
+}
+
+syncGrassInputs();
+document.getElementById("stage").addEventListener("change", updateGrassLayoutByStage);
+updateGrassLayoutByStage();
+
+const typeStageRows = [
+  { countId: "cnt_str", tenId: "dist_str_10", nineOneId: "dist_str_91" },
+  { countId: "cnt_agi", tenId: "dist_agi_10", nineOneId: "dist_agi_91" },
+  { countId: "cnt_ctl", tenId: "dist_ctl_10", nineOneId: "dist_ctl_91" },
+  { countId: "cnt_sup", tenId: "dist_sup_10", nineOneId: "dist_sup_91" },
+];
+
+function fillStageOptions(select, max) {
+  select.innerHTML = "";
+
+  const unlimited = document.createElement("option");
+  unlimited.value = "";
+  unlimited.textContent = "不限制";
+  select.appendChild(unlimited);
+
+  for (let i = 0; i <= max; i++) {
+    const opt = document.createElement("option");
+    opt.value = String(i);
+    opt.textContent = String(i);
+    select.appendChild(opt);
+  }
+}
+
+function refreshStageDistribution(row) {
+  const count = Number(document.getElementById(row.countId).value || 0);
+  const ten = document.getElementById(row.tenId);
+  const nineOne = document.getElementById(row.nineOneId);
+
+  const oldTen = ten.value;
+  const oldNineOne = nineOne.value;
+
+  fillStageOptions(ten, count);
+  fillStageOptions(nineOne, count);
+
+  ten.value = oldTen !== "" && Number(oldTen) <= count ? oldTen : "";
+  nineOne.value = oldNineOne !== "" && Number(oldNineOne) <= count ? oldNineOne : "";
+}
+
+function bindStageDistribution() {
+  typeStageRows.forEach(row => {
+    const countInput = document.getElementById(row.countId);
+    const ten = document.getElementById(row.tenId);
+    const nineOne = document.getElementById(row.nineOneId);
+
+    refreshStageDistribution(row);
+
+    countInput.addEventListener("input", () => {
+      refreshStageDistribution(row);
+      saveForm();
+    });
+
+    ten.addEventListener("change", () => {
+      const count = Number(countInput.value || 0);
+
+      if (ten.value === "") {
+        nineOne.value = "";
+      } else {
+        nineOne.value = String(count - Number(ten.value));
+      }
+
+      saveForm();
+    });
+
+    nineOne.addEventListener("change", () => {
+      const count = Number(countInput.value || 0);
+
+      if (nineOne.value === "") {
+        ten.value = "";
+      } else {
+        ten.value = String(count - Number(nineOne.value));
+      }
+
+      saveForm();
+    });
+  });
+}
+
+function readStageDistribution(typeKey, totalCount) {
+  const tenVal = document.getElementById(`dist_${typeKey}_10`)?.value ?? "";
+  const nineOneVal = document.getElementById(`dist_${typeKey}_91`)?.value ?? "";
+
+  return {
+    ten: tenVal === "" ? null : Number(tenVal),
+    nineOne: nineOneVal === "" ? null : Number(nineOneVal),
+    total: totalCount
+  };
+}
+
+const countPairs = [
+  ["cnt_str", "cnt_str_stage"],
+  ["cnt_agi", "cnt_agi_stage"],
+  ["cnt_ctl", "cnt_ctl_stage"],
+  ["cnt_sup", "cnt_sup_stage"],
+];
+
+function syncCountInputs() {
+  countPairs.forEach(([a, b]) => {
+    const inputA = document.getElementById(a);
+    const inputB = document.getElementById(b);
+    if (!inputA || !inputB) return;
+
+    inputA.addEventListener("input", () => {
+      inputB.value = inputA.value;
+
+      const row = typeStageRows.find(r => r.countId === a);
+      if (row) refreshStageDistribution(row);
+
+      saveForm();
+    });
+
+    inputB.addEventListener("input", () => {
+      inputA.value = inputB.value;
+
+      const row = typeStageRows.find(r => r.countId === a);
+      if (row) refreshStageDistribution(row);
+
+      saveForm();
+    });
+  });
+}
+
+function copyNormalCountToStageCount() {
+  countPairs.forEach(([a, b]) => {
+    const inputA = document.getElementById(a);
+    const inputB = document.getElementById(b);
+    if (!inputA || !inputB) return;
+
+    inputB.value = inputA.value;
+  });
+}
+
+function updateCountLayoutByStage() {
+  const stage = document.getElementById("stage").value;
+
+  const normalCard = document.getElementById("countNormalCard");
+  const stageCard = document.getElementById("countStageDistCard");
+
+  const useStageDist = stage === "6";
+
+  normalCard.style.display = useStageDist ? "none" : "block";
+  stageCard.style.display = useStageDist ? "block" : "none";
 }
 
 function setupTutorialUI() {
