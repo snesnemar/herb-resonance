@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>仙草共鳴計算器</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #f2f2f2;
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .page {
+      padding: 10px;
+    }
+
+    .card {
+      background: white;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+    }
+
+    .row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 6px;
+      font-size: 14px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    .btnStart {
+      background: #418043;
+      color: white;
+    }
+
+    .btnLoading {
+      background: #d67e86;
+      color: white;
+    }
+
+    .btnBack {
+      background: #888;
+      color: white;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    td,
+    th {
+      border: 1px solid #ccc;
+      padding: 6px;
+      text-align: center;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .selectWrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      width: 100%;
+    }
+
+    .selNo {
+      min-width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: #eee;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+    }
+
+    .selectWrap select {
+      width: 100%;
+    }
+
+    .inputWrap {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .inlineField {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      width: 100%;
+    }
+
+    .inlineField label {
+      min-width: 36px;
+      /* 控制對齊 */
+      font-size: 13px;
+      color: #0c0a0a;
+    }
+
+    .inlineField input {
+      flex: 1;
+    }
+
+    .hint {
+      color: #888;
+      font-size: 12px;
+    }
+
+    .sectionTitle {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .rowLack {
+      background: #ffe9e9;
+      /* 淡紅底 */
+    }
+
+    .rowLack td {
+      color: #b00020;
+      /* 深紅字 */
+      font-weight: 600;
+    }
+
+    .row_sup {
+      background: #e8f7ec;
+    }
+
+    /* 淡綠 */
+    .row_ctl {
+      background: #eaf4ff;
+    }
+
+    /* 淡藍 */
+    .row_agi {
+      background: #f3eaff;
+    }
+
+    /* 淡紫 */
+    .row_str {
+      background: #fff2e6;
+    }
+
+    /* 淡橘 */
+
+    @media (max-width: 600px) {
+
+      body {
+        font-size: 16px;
+      }
+
+      input,
+      select {
+        font-size: 16px;
+        padding: 10px;
+      }
+
+      button {
+        font-size: 18px;
+        padding: 12px;
+      }
+
+      .card {
+        padding: 12px;
+        margin-bottom: 12px;
+      }
+
+      h3 {
+        font-size: 20px;
+      }
+
+    }
+
+    .layout {
+      display: block;
+    }
+
+    /* 桌機：左右兩欄 */
+    @media (min-width: 1024px) {
+      .layout {
+        display: grid;
+        grid-template-columns: 520px 1fr;
+        /* 左固定、右自適應 */
+        gap: 12px;
+        padding: 10px;
+      }
+
+      #pageInput {
+        padding: 0;
+      }
+
+      #pageResult {
+        padding: 0;
+      }
+
+      .resultPane {
+        position: sticky;
+        top: 10px;
+        height: calc(100vh - 20px);
+        overflow: auto;
+      }
+
+      /* 桌機：強制顯示結果區（即使有 hidden） */
+      #pageResult.hidden {
+        display: block !important;
+      }
+
+      /* 桌機：隱藏「返回」按鈕 */
+      #pageResult .btnBack {
+        display: none !important;
+      }
+
+      /* 桌機不需要返回按鈕 */
+      #pageInput.hidden {
+        display: block;
+      }
+
+      #pageResult.hidden {
+        display: block;
+      }
+
+      .btnBack {
+        display: none;
+      }
+
+    }
+
+    /* ========= 保存按鈕 ========= */
+    .btnSaveImage {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      background: #c44056;
+      color: #fff;
+      margin-top: 10px;
+    }
+
+    /* ========= 教學按鈕 ========= */
+    .btnTutorial {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      background: #446ba7;
+      color: #fff;
+      margin-top: 10px;
+    }
+
+    /* ========= 教學彈窗 ========= */
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+    }
+
+    .modalBackdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, .45);
+    }
+
+    .modalCard {
+      position: relative;
+      width: min(720px, calc(100vw - 24px));
+      max-height: calc(100vh - 24px);
+      margin: 12px auto;
+      background: #fff;
+      border-radius: 12px;
+      overflow: auto;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .25);
+    }
+
+    .modalHeader {
+      position: sticky;
+      top: 0;
+      background: #fff;
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modalTitle {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .modalClose {
+      border: none;
+      background: #eee;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .modalBody {
+      padding: 12px;
+    }
+
+    .tutorialItem {
+      margin-bottom: 14px;
+    }
+
+    .tutorialText {
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .tutorialImg {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid #eee;
+    }
+
+    .cCostOutput {
+      flex: 1;
+      min-width: 220px;
+      /* 手機 */
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #fafafa;
+      font-weight: 700;
+    }
+
+    /* 平板以上 */
+    @media (min-width: 768px) {
+      .cCostOutput {
+        min-width: 280px;
+      }
+    }
+
+    /* 大螢幕 */
+    @media (min-width: 1200px) {
+      .cCostOutput {
+        min-width: 320px;
+      }
+    }
+
+    .hiddenCol {
+      display: none;
+    }
+    
+  </style>
+</head>
+
+<body>
+  <div class="layout">
+    <div id="pageInput" class="page">
+
+      <h3><i class="fa-solid fa-leaf fa-lg" style="color: rgb(66, 123, 86);"></i> 仙草共鳴計算器</h3>
+
+      <div class="card">
+        <div class="sectionTitle">階段</div>
+        <select id="stage">
+          <option value="1">4階</option>
+          <option value="2">6階</option>
+          <option value="3">8階</option>
+          <option value="5">9階</option>
+          <option value="4">10階（只有第一頁10階的算法）</option>
+          <option value="6">10階（含第二頁點法）</option>
+        </select>
+      </div>
+
+      <div class="card">
+        <div class="sectionTitle" id="commonTitle">
+          通用（相思 / 幽香）
+        </div>
+
+        <div class="row">
+          <input id="ownX" placeholder="相思">
+          <input id="ownY" placeholder="幽香">
+          <input id="ownW" class="hidden" placeholder="望穿" inputmode="numeric">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="sectionTitle">強攻（大草 / 小草）</div>
+        <div class="row">
+          <input id="ownC_str" placeholder="大草" inputmode="numeric">
+          <input id="ownD_str" placeholder="小草" inputmode="numeric">
+        </div>
+
+        <div class="sectionTitle">敏攻（大草 / 小草）</div>
+        <div class="row">
+          <input id="ownC_agi" placeholder="大草" inputmode="numeric">
+          <input id="ownD_agi" placeholder="小草" inputmode="numeric">
+        </div>
+
+        <div class="sectionTitle">控制（大草 / 小草）</div>
+        <div class="row">
+          <input id="ownC_ctl" placeholder="大草" inputmode="numeric">
+          <input id="ownD_ctl" placeholder="小草" inputmode="numeric">
+        </div>
+
+
+        <div class="sectionTitle">輔助（大草 / 小草）</div>
+        <div class="row">
+          <input id="ownC_sup" placeholder="大草" inputmode="numeric">
+          <input id="ownD_sup" placeholder="小草" inputmode="numeric">
+        </div>
+      </div>
+
+
+      <div class="card">
+        <div class="sectionTitle">各類型要做幾個</div>
+        <div class="row">
+
+          <div class="inlineField">
+            <label>強攻</label>
+            <input id="cnt_str" inputmode="numeric">
+          </div>
+
+          <div class="inlineField">
+            <label>敏攻</label>
+            <input id="cnt_agi" inputmode="numeric">
+          </div>
+
+        </div>
+
+        <div class="row">
+
+          <div class="inlineField">
+            <label>控制</label>
+            <input id="cnt_ctl" inputmode="numeric">
+          </div>
+
+          <div class="inlineField">
+            <label>輔助</label>
+            <input id="cnt_sup" inputmode="numeric">
+          </div>
+
+        </div>
+      </div>
+
+
+      <div class="card">
+        <div class="sectionTitle">缺額策略（1最優先缺，5最不希望缺少）</div>
+        <div class="hint">
+          當計算結果缺額不符合預期時可選<br>
+        </div>
+
+        <div class="row">
+          <div class="selectWrap">
+            <span class="selNo">1</span>
+            <select id="lack1">
+              <option value="none">不允許缺</option>
+              <option value="x">相思</option>
+              <option value="y">幽香</option>
+              <option value="c">大草</option>
+              <option value="d">小草</option>
+              <option value="w">望穿</option>
+            </select>
+          </div>
+
+          <div class="selectWrap">
+            <span class="selNo">2</span>
+            <select id="lack2">
+              <option value="none">不允許缺</option>
+              <option value="x">相思</option>
+              <option value="y">幽香</option>
+              <option value="c">大草</option>
+              <option value="d">小草</option>
+              <option value="w">望穿</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="selectWrap">
+            <span class="selNo">3</span>
+            <select id="lack3">
+              <option value="none">不允許缺</option>
+              <option value="x">相思</option>
+              <option value="y">幽香</option>
+              <option value="c">大草</option>
+              <option value="d">小草</option>
+              <option value="w">望穿</option>
+            </select>
+          </div>
+
+          <div class="selectWrap">
+            <span class="selNo">4</span>
+            <select id="lack4">
+              <option value="none">不允許缺</option>
+              <option value="x">相思</option>
+              <option value="y">幽香</option>
+              <option value="c">大草</option>
+              <option value="d">小草</option>
+              <option value="w">望穿</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="selectWrap">
+            <span class="selNo">5</span>
+            <select id="lack5">
+              <option value="none">不允許缺</option>
+              <option value="x">相思</option>
+              <option value="y">幽香</option>
+              <option value="c">大草</option>
+              <option value="d">小草</option>
+              <option value="w">望穿</option>
+            </select>
+          </div>
+          <div class="selectWrap">
+          </div>
+        </div>
+      </div>
+
+
+
+
+      <div class="card">
+        <button id="btnCalc" type="button" class="btnStart">開始計算 <i class="fa-solid fa-caret-right"></i></button>
+      </div>
+
+    </div>
+
+
+    <div id="pageResult" class="page hidden resultPane">
+      <div id="resultExportArea">
+        <h3><i class="fa-solid fa-list-ol fa-lg"></i> 計算結果</h3>
+
+        <div class="card">
+          <table id="resultTable">
+            <tr>
+              <th>序</th>
+              <th>類型</th>
+              <th id="thStage">階數</th>
+              <th>相思</th>
+              <th>幽香</th>
+              <th>大草</th>
+              <th>小草</th>
+              <th id="thW" class="page2Col">望穿</th>
+              <th id="thD2" class="page2Col">小草</th>
+            </tr>
+          </table>
+        </div>
+
+        <div class="card">
+          <table id="diffTable">
+            <tr>
+              <th>項目</th>
+              <th>花費</th>
+              <th>擁有</th>
+              <th>差額</th>
+              <th>狀態</th>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <button class="btnBack" onclick="back()">返回 <i class="fa-solid fa-rotate-left"></i></button>
+      <button id="btnSaveImage" type="button" class="btnSaveImage" style="display:none;">保存結果圖片 <i class="fa-solid fa-cloud-arrow-down"></i></button>
+      <!-- 教學按鈕 -->
+      <button id="btnTutorial" type="button" class="btnTutorial">顯示使用教學 <i class="fa-solid fa-splotch"></i></button>
+
+      <!-- 教學彈窗（預設隱藏） -->
+      <div id="tutorialModal" class="modal hidden" aria-hidden="true">
+        <div class="modalBackdrop"></div>
+
+        <div class="modalCard" role="dialog" aria-modal="true" aria-labelledby="tutorialTitle">
+          <div class="modalHeader">
+            <div id="tutorialTitle" class="modalTitle"><i class="fa-solid fa-robot"></i>
+              使用教學</div>
+            <button id="btnTutorialClose" class="modalClose" type="button">✕</button>
+          </div>
+
+          <div class="modalBody">
+            <div class="tutorialItem">
+              <div class="tutorialText">1. 小草優先點圖片上的位置到2等</div>
+              <img class="tutorialImg" src="/public/tutorial-1.png" alt="小草優先點教學">
+            </div>
+
+            <div class="tutorialItem">
+              <div class="tutorialText">2. 大草先集中點滿單邊</div>
+              <img class="tutorialImg" src="/public/tutorial-2.png" alt="大草集中點滿單邊教學">
+            </div>
+
+            <div class="tutorialItem">
+              <div class="tutorialText"><i class="fa-solid fa-magnifying-glass"></i> 大草等級對照 </div>
+
+              <div class="row" style="align-items:center;">
+                <input id="cCostInput" inputmode="numeric" placeholder="請輸入…">
+                <div id="cCostOutput" class="cCostOutput">（會在這裡顯示結果）</div>
+              </div>
+
+              <div class="hint"><i class="fa-solid fa-circle-info"></i> 例：輸入 12 → 右8等+左2等</div>
+            </div>
+
+            <div class="tutorialItem">
+              <div class="tutorialText">3. 第二頁一階固定點法</div>
+              <img class="tutorialImg" src="/public/tutorial-3.png" alt="第二頁一階固定點法教學">
+            </div>
+
+            <div class="tutorialItem">
+              <div class="tutorialText">4. 仙草階級：凡階-黃階-玄階-地階-天階-靈階-魂階</div>
+            </div>
+
+            <div class="tutorialItem">
+              <div class="tutorialText">5. 第一頁大草10等資質需要【天階上境】</div>
+              <img class="tutorialImg" src="/public/tutorial-5.png" alt="資質限制">
+            </div>
+
+            <div class="tutorialItem">
+              <div class="tutorialText">6. 第二頁一階固定點法資質需要【魂階下境】</div>
+              <img class="tutorialImg" src="/public/tutorial-6.png" alt="資質限制">
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script type="module" src="./src/main.js"></script>
+
+</body>
+
+</html>
