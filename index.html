@@ -389,81 +389,76 @@
       margin-bottom: 10px;
     }
 
-  .countStageRow {
-  display: grid;
-  grid-template-columns:
-    40px
-    minmax(60px, 1fr)
-    40px
-    minmax(80px, 1fr)
-    50px
-    minmax(80px, 1fr);
+    .countStageRow {
+      display: grid;
+      grid-template-columns:
+        40px minmax(60px, 1fr) 40px minmax(80px, 1fr) 50px minmax(80px, 1fr);
 
-  gap: 8px;
-  align-items: center;
-}
+      gap: 8px;
+      align-items: center;
+    }
 
-.countStageRow label {
-  font-weight: 600;
-}
+    .countStageRow label {
+      font-weight: 600;
+    }
 
-.countStageRow span {
-  font-size: 12px;
-  color: #888;
-  white-space: nowrap;
-}
+    .countStageRow span {
+      font-size: 12px;
+      color: #888;
+      white-space: nowrap;
+    }
 
-.countStageRow input,
-.countStageRow select {
-  width: 100%;
-  box-sizing: border-box;
-}
+    .countStageRow input,
+    .countStageRow select {
+      width: 100%;
+      box-sizing: border-box;
+    }
 
-/* 電腦版維持原本 */
+    /* 電腦版維持原本 */
 
-/* 手機版 */
-@media (max-width: 768px) {
-  .countStageRow {
-    grid-template-columns: 52px 1fr;
-    gap: 8px 10px;
-    margin-bottom: 14px;
-  }
+    /* 手機版 */
+    @media (max-width: 768px) {
+      .countStageRow {
+        grid-template-columns: 52px 1fr;
+        gap: 8px 10px;
+        margin-bottom: 14px;
+      }
 
-  .countStageRow label {
-    grid-column: 1;
-    grid-row: 1;
-    font-size: 16px;
-  }
+      .countStageRow label {
+        grid-column: 1;
+        grid-row: 1;
+        font-size: 16px;
+      }
 
-  .countStageRow input {
-    grid-column: 2;
-    grid-row: 1;
-  }
+      .countStageRow input {
+        grid-column: 2;
+        grid-row: 1;
+      }
 
-  .countStageRow span:nth-of-type(1) {
-    grid-column: 1;
-    grid-row: 2;
-  }
+      .countStageRow span:nth-of-type(1) {
+        grid-column: 1;
+        grid-row: 2;
+      }
 
-  .countStageRow select:nth-of-type(1) {
-    grid-column: 2;
-    grid-row: 2;
-  }
+      .countStageRow select:nth-of-type(1) {
+        grid-column: 2;
+        grid-row: 2;
+      }
 
-  .countStageRow span:nth-of-type(2) {
-    grid-column: 1;
-    grid-row: 3;
-  }
+      .countStageRow span:nth-of-type(2) {
+        grid-column: 1;
+        grid-row: 3;
+      }
 
-  .countStageRow select:nth-of-type(2) {
-    grid-column: 2;
-    grid-row: 3;
-  }
+      .countStageRow select:nth-of-type(2) {
+        grid-column: 2;
+        grid-row: 3;
+      }
 
-  .countStageRow span {
-    font-size: 14px;
-  }
-}
+      .countStageRow span {
+        font-size: 14px;
+      }
+    }
   </style>
 </head>
 
@@ -559,81 +554,81 @@
         </div>
       </div>
 
-<!-- 一般階段：各類型要做幾個 -->
-<div id="countNormalCard" class="card">
-  <div class="sectionTitle">各類型要做幾個</div>
+      <!-- 一般階段：各類型要做幾個 -->
+      <div id="countNormalCard" class="card">
+        <div class="sectionTitle">各類型要做幾個</div>
 
-  <div class="row">
-    <div class="inlineField">
-      <label class="label">強攻</label>
-      <input id="cnt_str" inputmode="numeric">
-    </div>
+        <div class="row">
+          <div class="inlineField">
+            <label class="label">強攻</label>
+            <input id="cnt_str" inputmode="numeric">
+          </div>
 
-    <div class="inlineField">
-      <label class="label">敏攻</label>
-      <input id="cnt_agi" inputmode="numeric">
-    </div>
-  </div>
+          <div class="inlineField">
+            <label class="label">敏攻</label>
+            <input id="cnt_agi" inputmode="numeric">
+          </div>
+        </div>
 
-  <div class="row">
-    <div class="inlineField">
-      <label class="label">控制</label>
-      <input id="cnt_ctl" inputmode="numeric">
-    </div>
+        <div class="row">
+          <div class="inlineField">
+            <label class="label">控制</label>
+            <input id="cnt_ctl" inputmode="numeric">
+          </div>
 
-    <div class="inlineField">
-      <label class="label">輔助</label>
-      <input id="cnt_sup" inputmode="numeric">
-    </div>
-  </div>
-</div>
+          <div class="inlineField">
+            <label class="label">輔助</label>
+            <input id="cnt_sup" inputmode="numeric">
+          </div>
+        </div>
+      </div>
 
-<!-- 10階含第二頁：各類型要做幾個 + 階數分布 -->
-<div id="countStageDistCard" class="card">
-  <div class="sectionTitle">
-    各類型要做幾個，以及階數分布（10階 / 9+1階）
-  </div>
+      <!-- 10階含第二頁：各類型要做幾個 + 階數分布 -->
+      <div id="countStageDistCard" class="card">
+        <div class="sectionTitle">
+          各類型要做幾個，以及階數分布（10階 / 9+1階）
+        </div>
 
-  <div class="hint">
-    若不限制，系統自動決定 10階與 9+1階數量
-  </div>
+        <div class="hint">
+          若不限制，系統自動決定 10階與 9+1階數量
+        </div>
 
-  <div class="countStageRow">
-    <label>強攻</label>
-    <input id="cnt_str_stage" inputmode="numeric">
-    <span>10階</span>
-    <select id="dist_str_10"></select>
-    <span>9+1階</span>
-    <select id="dist_str_91"></select>
-  </div>
+        <div class="countStageRow">
+          <label>強攻</label>
+          <input id="cnt_str_stage" inputmode="numeric">
+          <span>10階</span>
+          <select id="dist_str_10"></select>
+          <span>9+1階</span>
+          <select id="dist_str_91"></select>
+        </div>
 
-  <div class="countStageRow">
-    <label>敏攻</label>
-    <input id="cnt_agi_stage" inputmode="numeric">
-    <span>10階</span>
-    <select id="dist_agi_10"></select>
-    <span>9+1階</span>
-    <select id="dist_agi_91"></select>
-  </div>
+        <div class="countStageRow">
+          <label>敏攻</label>
+          <input id="cnt_agi_stage" inputmode="numeric">
+          <span>10階</span>
+          <select id="dist_agi_10"></select>
+          <span>9+1階</span>
+          <select id="dist_agi_91"></select>
+        </div>
 
-  <div class="countStageRow">
-    <label>控制</label>
-    <input id="cnt_ctl_stage" inputmode="numeric">
-    <span>10階</span>
-    <select id="dist_ctl_10"></select>
-    <span>9+1階</span>
-    <select id="dist_ctl_91"></select>
-  </div>
+        <div class="countStageRow">
+          <label>控制</label>
+          <input id="cnt_ctl_stage" inputmode="numeric">
+          <span>10階</span>
+          <select id="dist_ctl_10"></select>
+          <span>9+1階</span>
+          <select id="dist_ctl_91"></select>
+        </div>
 
-  <div class="countStageRow">
-    <label>輔助</label>
-    <input id="cnt_sup_stage" inputmode="numeric">
-    <span>10階</span>
-    <select id="dist_sup_10"></select>
-    <span>9+1階</span>
-    <select id="dist_sup_91"></select>
-  </div>
-</div>
+        <div class="countStageRow">
+          <label>輔助</label>
+          <input id="cnt_sup_stage" inputmode="numeric">
+          <span>10階</span>
+          <select id="dist_sup_10"></select>
+          <span>9+1階</span>
+          <select id="dist_sup_91"></select>
+        </div>
+      </div>
       <div class="card">
         <div class="sectionTitle">缺額策略（1最優先缺，5最不希望缺少）</div>
         <div class="hint">
