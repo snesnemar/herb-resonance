@@ -85,7 +85,7 @@ window.addEventListener("resize", ensureDesktopTwoPane);
 function targetDByStage(stageIdx) {
   if (stageIdx === 1) return 48;
   if (stageIdx === 2) return 73;
-  if (stageIdx === 3) return 106;
+  if (stageIdx === 3) return 108;
   if (stageIdx === 4) return 175;
   if (stageIdx === 5) return 140;
   if (stageIdx === 6) return 175; // 10階含第二頁：10階算法本體
