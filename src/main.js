@@ -86,9 +86,9 @@ function targetDByStage(stageIdx) {
   if (stageIdx === 1) return 48;
   if (stageIdx === 2) return 73;
   if (stageIdx === 3) return 106;
-  if (stageIdx === 4) return 173;
-  if (stageIdx === 5) return 138;
-  if (stageIdx === 6) return 173; // 10階含第二頁：10階算法本體
+  if (stageIdx === 4) return 175;
+  if (stageIdx === 5) return 140;
+  if (stageIdx === 6) return 175; // 10階含第二頁：10階算法本體
   return 0;
 }
 
@@ -911,14 +911,14 @@ if (btn) btn.addEventListener("click", (e) => {
       let candidates;
 
       if (isStage10WithPage2) {
-        const candidates9 = genCandidatesByD(138).map(p => ({
+        const candidates9 = genCandidatesByD(140).map(p => ({
           ...p,
           stageText: "9+1",
           w: 2,
           d2: 10
         }));
 
-        const candidates10 = genCandidatesByD(173).map(p => ({
+        const candidates10 = genCandidatesByD(175).map(p => ({
           ...p,
           stageText: "10",
           w: 0,
