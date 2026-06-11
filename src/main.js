@@ -622,6 +622,11 @@ function computeLikeAHK({ candidates, counts, ownCommon, ownByType, policy, stag
 
         let localAll = candidates;
 
+        // ✅ 新限制：某類型只做 1 隻時，只能做 10階，不能做 9+1
+        if (n === 1) {
+          localAll = localAll.filter(p => p.stageText !== "9+1");
+        }
+
         const dist = stageDist?.[typeName];
 
         if (dist) {
@@ -1101,6 +1106,7 @@ function fillStageOptions(select, max) {
 
 function refreshStageDistribution(row) {
   const count = Number(document.getElementById(row.countId).value || 0);
+
   const ten = document.getElementById(row.tenId);
   const nineOne = document.getElementById(row.nineOneId);
 
@@ -1110,8 +1116,29 @@ function refreshStageDistribution(row) {
   fillStageOptions(ten, count);
   fillStageOptions(nineOne, count);
 
-  ten.value = oldTen !== "" && Number(oldTen) <= count ? oldTen : "";
-  nineOne.value = oldNineOne !== "" && Number(oldNineOne) <= count ? oldNineOne : "";
+  // ===== 新增規則 =====
+  // 只有1隻武魂時只能做10階
+  if (count === 1) {
+    ten.value = "1";
+    nineOne.value = "0";
+
+    ten.disabled = true;
+    nineOne.disabled = true;
+    return;
+  }
+
+  ten.disabled = false;
+  nineOne.disabled = false;
+
+  ten.value =
+    oldTen !== "" && Number(oldTen) <= count
+      ? oldTen
+      : "";
+
+  nineOne.value =
+    oldNineOne !== "" && Number(oldNineOne) <= count
+      ? oldNineOne
+      : "";
 }
 
 function bindStageDistribution() {
