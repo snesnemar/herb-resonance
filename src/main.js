@@ -1,4 +1,51 @@
-// ===== main.js（整個覆蓋貼上即可） =====
+// =========================
+// Apps Script
+// =========================
+const STATS_API = "https://script.google.com/macros/s/AKfycbzEFiC0MysBEkZx0FJZstH-XRC3k7Sa67cgcbdMm82yXHkozhFcwl6wJM_0bMGHCNKdFg/exec";
+
+function getVisitorId() {
+  let id = localStorage.getItem("herb_visitor_id");
+
+  if (!id) {
+    id = "V-" + crypto.randomUUID();
+    localStorage.setItem("herb_visitor_id", id);
+  }
+
+  return id;
+}
+
+async function getCountryCode() {
+  try {
+    const res = await fetch("https://ipapi.co/json/");
+    const data = await res.json();
+    return data.country_code || "OTHER";
+  } catch (e) {
+    return "OTHER";
+  }
+}
+
+async function sendStats(type) {
+  try {
+    const body = {
+      type,
+      visitorId: getVisitorId()
+    };
+
+    if (type === "view") {
+      body.country = await getCountryCode();
+    }
+
+    await fetch(STATS_API, {
+      method: "POST",
+      body: JSON.stringify(body)
+    });
+
+  } catch (e) {
+    console.log("統計失敗", e);
+  }
+}
+
+// ===== main.js =====
 
 const btn = document.getElementById("btnCalc");
 const table = document.getElementById("resultTable");
@@ -837,6 +884,8 @@ window.addEventListener("DOMContentLoaded", () => {
   syncCountInputs();
   updateCountLayoutByStage();
 
+  sendStats("view");
+
   document.querySelectorAll("input, select").forEach(el => {
     el.addEventListener("change", saveForm);
     el.addEventListener("input", saveForm);
@@ -851,7 +900,10 @@ window.addEventListener("DOMContentLoaded", () => {
 // 主流程：按鈕事件
 // =========================
 if (btn) btn.addEventListener("click", (e) => {
+
   e.preventDefault();
+
+sendStats("calc");
 
   btn.innerHTML = `
   計算中 <i class="fa-solid fa-spinner fa-spin"></i>`;
